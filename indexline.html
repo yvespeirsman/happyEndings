@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.line {
+  fill: none;
+  stroke: black;
+  stroke-width: .5px;
+}
+
+.area {
+  fill: url(#sentiment-gradient);
+  stroke-width: 05px;
+}
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.js"></script>
+<script>
+
+function fillColor(val) {
+    if (val > 0) {
+        return "lightgreen";
+    }
+    return "red";
+}
+
+var margin = {top: 20, right: 20, bottom: 30, left: 50},
+    width = 1500 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var x = d3.scale.linear()
+    .range([0, width]);
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom")
+    .tickFormat(""); // suppress labels
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+
+var area = d3.svg.area()
+    .x(function(d) { return x(d.date); })
+    .y0(height/2)
+    .y1(function(d) { return y(d.close) ; });
+
+var line = d3.svg.line()
+    .x(function(d) { return x(d.date); })
+    .y(function(d) { return y(d.close); });
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+d3.tsv("/static/pg1342-2000.tsv", function(error, data) {
+  data.forEach(function(d) {
+    d.date = parseFloat(d.date);
+    d.close = parseFloat(d.close);
+  });
+
+  console.log(data);
+
+  x.domain(d3.extent(data, function(d) { return d.date; }));
+  y.domain([-20,20]);
+
+  svg.append("linearGradient")
+      .attr("id", "sentiment-gradient")
+      .attr("gradientUnits", "userSpaceOnUse")
+      .attr("x1", 0).attr("y1", y(-20))
+      .attr("x2", 0).attr("y2", y(20))
+    .selectAll("stop")
+      .data([
+        {offset: "0%", color: "red"},
+        {offset: "50%", color: "red"},
+        {offset: "50%", color: "green"},
+        {offset: "100%", color: "green"}
+      ])
+    .enter().append("stop")
+      .attr("offset", function(d) { return d.offset; })
+      .attr("stop-color", function(d) { return d.color; });
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height/2 + ")")
+      .call(xAxis);
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+      .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Sentiment");
+
+  svg.append("path")
+		.datum(data)
+		.attr("class", "area")
+		.attr("d", area);
+
+  svg.append("path")
+      .datum(data)
+      .attr("class", "line")
+      .attr("d", line);
+});
+
+</script>
