@@ -69,7 +69,7 @@ var svg = d3.select("body").append("svg")
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-d3.tsv("/static/pg1342-2000.tsv", function(error, data) {
+d3.tsv("/static/pg1399-smooth-5000-narv.tsv", function(error, data) {
   data.forEach(function(d) {
     d.date = parseFloat(d.date);
     d.close = parseFloat(d.close);
@@ -78,13 +78,13 @@ d3.tsv("/static/pg1342-2000.tsv", function(error, data) {
   console.log(data);
 
   x.domain(d3.extent(data, function(d) { return d.date; }));
-  y.domain([-20,20]);
+  y.domain([-0.012,0.012]);
 
   svg.append("linearGradient")
       .attr("id", "sentiment-gradient")
       .attr("gradientUnits", "userSpaceOnUse")
-      .attr("x1", 0).attr("y1", y(-20))
-      .attr("x2", 0).attr("y2", y(20))
+      .attr("x1", 0).attr("y1", y(-0.012))
+      .attr("x2", 0).attr("y2", y(0.012))
     .selectAll("stop")
       .data([
         {offset: "0%", color: "red"},
